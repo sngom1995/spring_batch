@@ -7,7 +7,8 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableBatchProcessing
-@ComponentScan({"com.samba.config","com.samba.service", "com.samba.listener"})
+@ComponentScan({"com.samba.config","com.samba.service", "com.samba.listener","com.samba.writer","com.samba.reader"
+		,"com.samba.processor"})
 public class SpringBatchAppApplication {
 
 	public static void main(String[] args) {

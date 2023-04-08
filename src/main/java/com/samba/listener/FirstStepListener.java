@@ -10,9 +10,9 @@ public class FirstStepListener implements StepExecutionListener {
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-		System.out.println("Befor Job:"+stepExecution);
-		System.out.println("Job parameters:"+stepExecution);
-		System.out.println("Job Execution Ctx:"+stepExecution);
+		System.out.println("Befor Step :"+stepExecution.getStepName());
+		System.out.println("Step name :"+stepExecution.getStepName());
+		System.out.println("Step Execution Ctx:"+stepExecution.getJobExecution().getStepExecutions());
 		
 		stepExecution.getExecutionContext().put("ctx", "context value");
 
@@ -21,8 +21,10 @@ public class FirstStepListener implements StepExecutionListener {
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
-		// TODO Auto-generated method stub
-		return null;
+		System.out.println("After Step:"+stepExecution.getStepName());
+		System.out.println("Step name :"+stepExecution.getStepName());
+		System.out.println("Job Execution Ctx:"+stepExecution.getJobExecution().getStepExecutions());
+		return ExitStatus.COMPLETED;
 	}
 
 }

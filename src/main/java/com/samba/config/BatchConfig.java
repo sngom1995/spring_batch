@@ -14,7 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.samba.listener.FirstJobListener;
+import com.samba.listener.FirstStepListener;
+import com.samba.processor.FirstItemProcessor;
+import com.samba.reader.FirstItemReader;
 import com.samba.service.SecondTasklet;
+import com.samba.writer.FirstItemWriter;
 
 @Configuration
 public class BatchConfig {
@@ -31,6 +35,18 @@ public class BatchConfig {
 	@Autowired
 	private FirstJobListener firstJobListener;
 	
+	@Autowired
+	private FirstStepListener firstStepListener;
+	
+	@Autowired
+	private FirstItemReader firstItemReader;
+	
+	@Autowired
+	private FirstItemProcessor firstItemProcessor;
+	
+	@Autowired
+	private FirstItemWriter firstItemWriter;
+	
 	@Bean 
 	public Job firstJob() {
 		return jobBuilderFactory.get("First Job")
@@ -44,6 +60,7 @@ public class BatchConfig {
 	private Step firstStep() {
 	return	stepBuilderFactory.get("first Step")
 		.tasklet(firstTaslet())
+		.listener(firstStepListener)
 		.build();
 	}
 	
@@ -75,4 +92,23 @@ public class BatchConfig {
 			
 		};
 	}*/
+	
+	@Bean 
+	public Job secondJob() {
+		return jobBuilderFactory.get("Second Job")
+				.incrementer(new RunIdIncrementer())
+				.start(firstChunkStep())
+				.build();
+				
+	}
+	
+	private Step firstChunkStep() {
+		return	stepBuilderFactory.get("first chunk Step")
+			.<Integer, Long>chunk(3)
+			.reader(firstItemReader)
+			.processor(firstItemProcessor)
+			.writer(firstItemWriter)
+			.build();
+
+	}
 }
