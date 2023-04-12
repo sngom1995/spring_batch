@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan({"com.samba.config","com.samba.service", "com.samba.listener","com.samba.writer","com.samba.reader"
 		,"com.samba.processor", "com.samba.controller"})
 @EnableAsync
-@EnableScheduling
+//@EnableScheduling
 public class SpringBatchAppApplication {
 
 	public static void main(String[] args) {

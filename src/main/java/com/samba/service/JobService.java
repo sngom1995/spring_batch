@@ -35,7 +35,7 @@ public class JobService {
 	@Async
 	public void startJob(String jobName, List<JobParamRequest> jobParamRequestList) {
 		Map<String, JobParameter> params = new HashMap<>();
-		//params.put("Current time", new JobParameter(System.currentTimeMillis()));
+		params.put("Current time", new JobParameter(System.currentTimeMillis()));
 		
 		jobParamRequestList.stream()
 			.forEach(jobParam -> {
@@ -55,7 +55,7 @@ public class JobService {
 			System.out.println("Job Execution ID: "+jobExecution.getId());
 		}
 		catch(Exception e) {
-			System.out.println("Exception while starting the job");
+			System.out.println("Exception while starting the job"+e.getMessage());
 		}
 		
 	}

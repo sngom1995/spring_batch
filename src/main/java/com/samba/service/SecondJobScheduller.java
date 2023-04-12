@@ -28,7 +28,7 @@ public class SecondJobScheduller {
 	Job secondJob;
 	
 
-	@Scheduled(cron="0 0/1 * 1/1 * ?")
+	//@Scheduled(cron="0 0/1 * 1/1 * ?")
 	public void secondJobStarter() throws Exception {
 		Map<String, JobParameter> params = new HashMap<>();
 		params.put("Current time", new JobParameter(System.currentTimeMillis()));

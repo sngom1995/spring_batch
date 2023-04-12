@@ -1,5 +1,7 @@
 package com.samba.config;
 
+import java.io.File;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
@@ -8,13 +10,20 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileParseException;
+import org.springframework.batch.item.file.mapping.DefaultLineMapper;
+import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 
 import com.samba.listener.FirstJobListener;
 import com.samba.listener.FirstStepListener;
+import com.samba.model.StudentCSV;
 import com.samba.processor.FirstItemProcessor;
 import com.samba.reader.FirstItemReader;
 import com.samba.service.SecondTasklet;
@@ -105,11 +114,38 @@ public class BatchConfig {
 	
 	private Step firstChunkStep() {
 		return	stepBuilderFactory.get("first chunk Step")
-			.<Integer, Long>chunk(3)
-			.reader(firstItemReader)
-			.processor(firstItemProcessor)
+			.<StudentCSV, StudentCSV>chunk(3)
+			.reader(flatFileItemReader())
+			//.processor(firstItemProcessor)
 			.writer(firstItemWriter)
 			.build();
 
+	}
+	
+	public FlatFileItemReader<StudentCSV> flatFileItemReader(){
+		FlatFileItemReader<StudentCSV> flatFileItemReader = new FlatFileItemReader<StudentCSV>();
+		flatFileItemReader.setResource(
+				new FileSystemResource(
+						new File("/Users/badou/Documents/springSTS/Spring-batch-app/inputFiles/students.csv")
+						)
+				);
+		flatFileItemReader.setLineMapper(new DefaultLineMapper<StudentCSV>() {{
+			setLineTokenizer(new DelimitedLineTokenizer() {
+				{
+					setNames("ID","First Name", "Last Name","Email");
+					setStrict(false);
+					setDelimiter("|");
+				}
+			});
+			
+			setFieldSetMapper(new BeanWrapperFieldSetMapper<StudentCSV>() {
+				{
+					setTargetType(StudentCSV.class);
+				}
+			});
+		}} );
+		
+		flatFileItemReader.setLinesToSkip(1);
+		return flatFileItemReader;
 	}
 }
