@@ -15,6 +15,7 @@ import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.json.JsonItemReader;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,10 +23,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.item.json.JacksonJsonObjectReader;
 
 import com.samba.listener.FirstJobListener;
 import com.samba.listener.FirstStepListener;
 import com.samba.model.StudentCSV;
+import com.samba.model.StudentJSON;
 import com.samba.processor.FirstItemProcessor;
 import com.samba.reader.FirstItemReader;
 import com.samba.service.SecondTasklet;
@@ -116,8 +119,9 @@ public class BatchConfig {
 	
 	private Step firstChunkStep() {
 		return	stepBuilderFactory.get("first chunk Step")
-			.<StudentCSV, StudentCSV>chunk(3)
-			.reader(flatFileItemReader(null))
+			.<StudentJSON, StudentJSON>chunk(3)
+			.reader(jsonItemreader(null))
+			//.reader(flatFileItemReader(null))
 			//.processor(firstItemProcessor)
 			.writer(firstItemWriter)
 			.build();
@@ -126,7 +130,9 @@ public class BatchConfig {
 	
 	@StepScope
 	@Bean
-	public FlatFileItemReader<StudentCSV> flatFileItemReader(@Value("#{jobParameters['inputFile']}") FileSystemResource  fileName){
+	public FlatFileItemReader<StudentCSV> flatFileItemReader(
+			@Value("#{jobParameters['inputFile']}") FileSystemResource  fileName
+			){
 		FlatFileItemReader<StudentCSV> flatFileItemReader = new FlatFileItemReader<StudentCSV>();
 		flatFileItemReader.setResource(fileName);
 		flatFileItemReader.setLineMapper(new DefaultLineMapper<StudentCSV>() {{
@@ -147,5 +153,16 @@ public class BatchConfig {
 		
 		flatFileItemReader.setLinesToSkip(1);
 		return flatFileItemReader;
+	}
+	
+	@StepScope
+	@Bean
+	public JsonItemReader<StudentJSON> jsonItemreader(
+			@Value("#{jobParameters['inputFile']}") FileSystemResource  fileName
+			){
+		JsonItemReader<StudentJSON> jsonItemReader = new JsonItemReader<StudentJSON>();
+		jsonItemReader.setResource(fileName);
+		jsonItemReader.setJsonObjectReader(new JacksonJsonObjectReader<StudentJSON>(StudentJSON.class));
+		return jsonItemReader;
 	}
 }

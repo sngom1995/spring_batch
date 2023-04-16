@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<students>
+	<student>
+		<id>1</id>
+		<firstName>Samba</firstName>
+		<lastName>Ngom</lastName>
+		<email>sngom@gmail.com</email>
+	</student>
+	<student>
+		<id>2</id>
+		<firstName>Samba</firstName>
+		<lastName>Lo</lastName>
+		<email>slo@gmail.com</email>
+	</student>
+	<student>
+		<id>3</id>
+		<firstName>Abdoulaye</firstName>
+		<lastName>Lo</lastName>
+		<email>alo@gmail.com</email>
+	</student>
+	<student>
+		<id>4</id>
+		<firstName>Saliou</firstName>
+		<lastName>Lom</lastName>
+		<email>slom@gmail.com</email>
+	</student>
+	<student>
+		<id>5</id>
+		<firstName>Sadio</firstName>
+		<lastName>Loum</lastName>
+		<email>sloum@gmail.com</email>
+	</student>
+	<student>
+		<id>6</id>
+		<firstName>Sada</firstName>
+		<lastName>Leye</lastName>
+		<email>sleye@gmail.com</email>
+	</student>
+</students>
