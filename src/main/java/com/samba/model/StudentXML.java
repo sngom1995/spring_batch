@@ -1,5 +1,8 @@
 package com.samba.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name="student")
 public class StudentXML {
 	private Long id;
 	private String firstName;
