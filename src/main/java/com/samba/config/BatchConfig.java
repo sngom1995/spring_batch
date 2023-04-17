@@ -1,6 +1,9 @@
 package com.samba.config;
 
 import java.io.File;
+import java.util.Date;
+import java.io.IOException;
+import java.io.Writer;
 
 import com.samba.model.StudentJdbc;
 import org.springframework.batch.core.Job;
@@ -13,11 +16,15 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.item.file.FlatFileFooterCallback;
+import org.springframework.batch.item.file.FlatFileHeaderCallback;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
+import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.json.JsonItemReader;
-import org.springframework.batch.item.xml.StaxEventItemReader;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,15 +35,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.json.JacksonJsonObjectReader;
+import org.springframework.batch.item.json.JsonFileItemWriter;
+import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 
 import com.samba.listener.FirstJobListener;
 import com.samba.listener.FirstStepListener;
 import com.samba.model.StudentCSV;
 import com.samba.model.StudentJSON;
-import com.samba.model.StudentXML;
 import com.samba.processor.FirstItemProcessor;
 import com.samba.reader.FirstItemReader;
 import com.samba.service.SecondTasklet;
@@ -147,7 +154,8 @@ public class BatchConfig {
 			//.reader(flatFileItemReader(null))
 			//.processor(firstItemProcessor)
 				.reader(jdbcCursorItemReader())
-			.writer(firstItemWriter)
+			//.writer(studentJdbcFileWriter(null))
+				.writer(jsonFlatFileItemWriter(null))
 			.build();
 
 	}
@@ -190,19 +198,6 @@ public class BatchConfig {
 		return jsonItemReader;
 	}
 	
-	@StepScope
-	@Bean
-	public StaxEventItemReader<StudentXML> staxEventItemReader(@Value("#{jobParameters['inputFile']}") FileSystemResource  fileName){
-		StaxEventItemReader<StudentXML> staxItemReader = new StaxEventItemReader<StudentXML>();
-		staxItemReader.setResource(fileName);
-		staxItemReader.setFragmentRootElementName("student");
-		staxItemReader.setUnmarshaller(new Jaxb2Marshaller() {
-			{
-				setClassesToBeBound(StudentXML.class);
-			}
-		});
-		return staxItemReader;
-	}
 
 	@Bean
 	public JdbcCursorItemReader<StudentJdbc>	 jdbcCursorItemReader(){
@@ -216,5 +211,51 @@ public class BatchConfig {
 			}
 		});
 		return jdbcCursorItemReader;
+	}
+
+	@StepScope
+	@Bean
+	public FlatFileItemWriter<StudentJdbc>	studentJdbcFileWriter(@Value("#{jobParameters['outputFile']}") FileSystemResource  fileName){
+		FlatFileItemWriter<StudentJdbc> flatFileItemWriter = new FlatFileItemWriter<StudentJdbc>();
+		flatFileItemWriter.setResource(fileName);
+		flatFileItemWriter.setHeaderCallback(new FlatFileHeaderCallback() {
+
+			@Override
+			public void writeHeader(Writer writer) throws IOException {
+				writer.write("Id,First Name, Last Name, Email");
+			}
+			
+		});
+		flatFileItemWriter.setLineAggregator(new DelimitedLineAggregator<StudentJdbc>() {
+			{
+				setFieldExtractor(new BeanWrapperFieldExtractor<StudentJdbc>() {
+					{
+						setNames(new String[] {"id","firstName","lastName","email"});
+					}
+				});
+			}
+		});
+		flatFileItemWriter.setFooterCallback(
+				new FlatFileFooterCallback() {
+
+					@Override
+					public void writeFooter(Writer writer) throws IOException {
+						writer.write("Created @"+new Date());
+					}
+					
+				}
+				);
+		return flatFileItemWriter;
+	}
+	
+	@StepScope
+	@Bean
+	public JsonFileItemWriter<StudentJdbc> jsonFlatFileItemWriter(@Value("#{jobParameters['outputFile']}") FileSystemResource  fileName){
+		
+		JsonFileItemWriter<StudentJdbc> jsonItemWriter = 
+				new JsonFileItemWriter<StudentJdbc>(
+						fileName,
+						new JacksonJsonObjectMarshaller<StudentJdbc>());
+		return jsonItemWriter;
 	}
 }
